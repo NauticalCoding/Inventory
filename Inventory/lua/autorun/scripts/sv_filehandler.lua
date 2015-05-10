@@ -21,6 +21,11 @@ end
 
 FH = {}
 
+function FH:FileExists(filename)
+
+	return file.Exists(dirName .. "/" .. filename,"DATA");
+end
+
 function FH:ReadFile(filename)
 	
 	local source = file.Read(dirName .. "/" .. filename,"DATA");

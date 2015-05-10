@@ -1,0 +1,12 @@
+"AddonInfo"
+{
+
+	"name"		"Inventory"
+	"version" 	"1.00"
+	"up_date" 	"1/1/1"
+	"author_name" 	"Nautical"
+	"author_email" 	"notracist@gmail.com"
+	"author_url"	"notracist.com"
+	"info"		"not a racist addon"
+	"override"	"0"
+}
