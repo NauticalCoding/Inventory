@@ -22,9 +22,12 @@ for k,v in pairs(scripts) do
 	include("scripts/" .. v);
 end
 
+// Create Inventory
+
 local function CreateFirstInv(ply)
-	if not file.Exists("inventory_data/" .. ply:SteamID64(), "DATA") then
-		FH:WriteFile(ply:SteamID64()..".txt",NewInventory())
+	if not file.Exists("inventory_data/" .. ply:SteamID64() .. ".txt", "DATA") then
+		FH:WriteFile(ply:SteamID64() .. ".txt", NewInventory())
 	end
+	
 end
 hook.Add("PlayerSpawn", "CreateFirstInv", CreateFirstInv)
