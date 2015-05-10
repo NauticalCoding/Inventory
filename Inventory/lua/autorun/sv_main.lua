@@ -3,7 +3,7 @@
 
 	Server main script
 	
-	Nautical
+	Nautical & Anarchy
 	
 	5/8/2015
 */
@@ -21,3 +21,10 @@ for k,v in pairs(scripts) do
 	print( "Including script: " .. v );
 	include("scripts/" .. v);
 end
+
+local function CreateFirstInv(ply)
+	if not file.Exists("inventory_data/" .. ply:SteamID64(), "DATA") then
+		FH:WriteFile(ply:SteamID64()..".txt",NewInventory())
+	end
+end
+hook.Add("PlayerSpawn", "CreateFirstInv", CreateFirstInv)

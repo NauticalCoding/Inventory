@@ -3,7 +3,7 @@
 
 	Inventory object
 	
-	Nautical
+	Nautical & Anarchy
 	
 	5/8/2015
 */
@@ -50,6 +50,6 @@ end
 // Global method(s)
 
 function NewInventory()
-
+	inv:Init()
 	return inv;
 end
