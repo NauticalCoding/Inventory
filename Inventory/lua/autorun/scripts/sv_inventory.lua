@@ -14,6 +14,7 @@ local inv = {
 	
 	rows = 5,
 	columns = 10,
+	parent = nil,
 	contents = {},
 }
 
@@ -30,25 +31,29 @@ function inv:AddObject(data)
 
 	for r = 1,self.rows do
 		for c = 1,self.columns do 
-		
-			if (table.Count(self.contents[r][c]) == 0 ) then // if the slot is empty..
+			
+			if (table.Count(self.contents[r][c]) == 0) then // if the slot is empty..
 		
 				self.contents[r][c] = data;
 			end
 		end
 	end
+	
+	FH:WriteFile(FH:PlayerToFileName(self.parent),self);
 end
 
 function inv:RemoveObject(row,column)
 
 	self.contents[row][column] = {};
+	FH:WriteFile(FH:PlayerToFileName(self.parent),self);
 end
 
 function inv:InteractObject(row,column,interactFunc)
 
 	if (table.Count(self.contents[row][column]) > 0) then // if the slot isn't empty
 	
-		interactFunc(self.contents[row][column]) // call interactFunc and pass the data from the selected slot
+		interactFunc(self.contents[row][column]); // call interactFunc and pass the data from the selected slot
+		self:RemoveObject(row,column);
 	end
 end
 
@@ -58,23 +63,28 @@ function inv:MoveObject(row,column,newRow,newColumn)
 	
 	self.contents[newRow][newColumn] = self.contents[row][column];
 	self.contents[row][column] = buffer;
+	FH:WriteFile(FH:PlayerToFileName(self.parent),self);
 end
 
-function inv:Init()
+function inv:Init(ply)
 
 	for r = 1,self.rows do
 		for c = 1,self.columns do
-		
-			self.contents[r] = {};
+			
+			if (self.contents[r] == nil) then 
+				self.contents[r] = {};
+			end
 			self.contents[r][c] = {};
 		end
 	end
+	
+	self.parent = ply;
+	self.contents = FH:ReadFile(FH:PlayerToFileName(ply))
 end
 
 // Global method(s)
 
 function NewInventory()
-	
-	inv:Init()
+
 	return inv;
 end

@@ -32,12 +32,10 @@ function FH:ReadFile(filename)
 	return util.JSONToTable(source);
 end
 
-function FH:WriteFile(filename,data)
+function FH:WriteFile(filename,inventoryObj)
 
-	local source = util.TableToJSON(data);
+	local source = util.TableToJSON(inventoryObj.contents);
 	file.Write(dirName .. "/" .. filename,source);
-	
-	
 end
 
 function FH:PlayerToFileName(ply)
