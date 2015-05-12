@@ -3,7 +3,7 @@
 
 	File Handler
 	
-	Nautical
+	Nautical & Anarchy
 	
 	5/8/2015
 */
@@ -36,6 +36,8 @@ function FH:WriteFile(filename,data)
 
 	local source = util.TableToJSON(data);
 	file.Write(dirName .. "/" .. filename,source);
+	
+	
 end
 
 function FH:PlayerToFileName(ply)

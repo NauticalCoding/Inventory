@@ -32,8 +32,8 @@ local function CreateFirstInv(ply)
 
 	local inventory = NewInventory();
 	inventory:Init();
-	
-	FH:WriteFile(FH:PlayerToFilename(ply), inventory);
+
+	FH:WriteFile(FH:PlayerToFileName(ply), inventory);
 end
 hook.Add("PlayerSpawn", "CreateFirstInv", CreateFirstInv)
 
@@ -41,19 +41,20 @@ hook.Add("PlayerSpawn", "CreateFirstInv", CreateFirstInv)
 
 local function LoadInventory(ply)
 
-	table.insert(allInvens,FH:ReadFile(FH:PlayerToFilename(ply)));
+	table.insert(allInvens,FH:ReadFile(FH:PlayerToFileName(ply)));
 end
 
 // On Initial Spawn
 
 local function OnInitialSpawn(ply)
 
-	if (FH:FileExists(FH:PlayerToFilename(ply))) then
+	if (FH:FileExists(FH:PlayerToFileName(ply))) then
 		
-		CreateFirstInv(ply);
+		LoadInventory(ply);
+		
 	else
 	
-		LoadInventory(ply);
+		CreateFirstInv(ply);
 	end
 end
 

@@ -17,6 +17,15 @@ local inv = {
 	contents = {},
 }
 
+--[[
+	Data that we need to store:
+		- all items being stored are going to be in the primary class "spawned_weapon"... So we can just do a check for that before AddObject is called.
+		- We will need to store 2 things:
+			- item subclass (ex: weapon_ak47 or durgz_alchohol)
+			- item model path (ex: model/weapon/weapon_ak47.mdl)
+		- These will need to be stored in our JSON table when we save and load.	
+]]--
+
 function inv:AddObject(data)
 
 	for r = 1,self.rows do
@@ -65,6 +74,7 @@ end
 // Global method(s)
 
 function NewInventory()
-
+	
+	inv:Init()
 	return inv;
 end
