@@ -12,6 +12,36 @@ if (CLIENT) then return end
 
 AddCSLuaFile("cl_main.lua");
 
+// Networking
+util.AddNetworkString("SendInv")
+util.AddNetworkString("EquipWeapon")
+
+local function PrintInfo()
+	local col = net.ReadInt(32)
+	local row = net.ReadInt(32)
+	local ply = net.ReadEntity()
+	local tbl = net.ReadTable()
+	
+	local inventory = NewInventory()
+	inventory:Init(ply)
+	
+	inventory:InteractObject(row,col,function(tbl)
+		local pos = LocalToWorld(Vector(35, 70, 35), Angle(0, 0, 0), ply:GetPos(), ply:GetAngles())
+		local ent = ents.Create("spawned_weapon")
+		ent:SetModel(tbl.model)
+		ent:SetPos(ply:GetPos())
+		ent:Spawn()
+		ent:Activate()
+		
+		ent.dt["WeaponClass"] = tbl.class
+		
+	end)
+	
+	inventory:RemoveObject(row,col)
+
+end
+net.Receive("EquipWeapon", PrintInfo)
+
 // Variables
 
 local pickupWhitelist = {
@@ -45,8 +75,8 @@ local function OnInitialSpawn(ply)
 
 	if (!FH:FileExists(FH:PlayerToFileName(ply))) then
 		
+		//print("Creating first inventory for: " .. ply:Nick());
 		CreateFirstInv(ply);
-		print("Creating first inventory for: " .. ply:Nick());
 	end
 end
 hook.Add( "PlayerInitialSpawn","Inventory-OnInitialSpawn",OnInitialSpawn)
@@ -63,7 +93,7 @@ local function PlyPickup(ply,key)
 	if (!table.HasValue(pickupWhitelist,ent:GetClass())) then return end // bad class
 	
 	// debug
-	print("Player: " .. ply:Nick() .. " picked up " .. ent:GetClass());
+	print("Player: " .. ply:Nick() .. " picked up " .. ent:GetWeaponClass());
 	
 	// load inventory
 	
@@ -73,7 +103,7 @@ local function PlyPickup(ply,key)
 	// prepare data
 	
 	local data = {}
-	data.class = ent:GetClass();
+	data.class = ent:GetWeaponClass();
 	data.model = ent:GetModel();
 	
 	// access inventory
@@ -95,4 +125,16 @@ end
 
 hook.Add( "PlayerCanPickupWeapon","Inventory-DenyWeaponPickup",CanPickupWeapon )
 
+// Open our clientside menu
+local function InvMenu(ply)
+	local inventory = FH:ReadFile(FH:PlayerToFileName(ply))
+
+
+	umsg.Start("InvMenu", ply)
+		net.Start("SendInv")
+			net.WriteTable(inventory)
+		net.Send(ply)
+	umsg.End()
+end
+hook.Add("ShowHelp", "Inventory-ShowMenu", InvMenu)
 

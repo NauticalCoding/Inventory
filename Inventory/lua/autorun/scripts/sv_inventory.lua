@@ -79,7 +79,10 @@ function inv:Init(ply)
 	end
 	
 	self.parent = ply;
-	self.contents = FH:ReadFile(FH:PlayerToFileName(ply))
+	
+	if (FH:FileExists(FH:PlayerToFileName(ply))) then // if they have a file
+		self.contents = FH:ReadFile(FH:PlayerToFileName(self.parent)) // set obj contents to their file's contents...
+	end
 end
 
 // Global method(s)
