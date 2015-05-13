@@ -40,7 +40,10 @@ local function ReceiveInv()
 end
 net.Receive("SendInv", ReceiveInv)
 
-// Make our nice blur effect
+// Make our nice blur effect (credit to chessnut)
+// found here: http://facepunch.com/showthread.php?t=1440586&p=47046119&viewfull=1#post47046119
+// and here: https://github.com/Chessnut/NutScript/blob/097c611c19f093a7a9d9a5d45f2fd73ac7d68309/gamemode/derma/cl_charmenu.lua#L8
+
 
 local blur = Material("pp/blurscreen")
 
