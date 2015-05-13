@@ -10,6 +10,20 @@
 
 if (SERVER) then return end
 
+local function AddChat(text, sender)
+
+	if sender == 1 then
+		
+		chat.AddText(Color(145,220,135), "[Inventory] ", color_white, text)
+	else
+		local text = net.ReadString()
+		
+		chat.AddText(Color(145,220,135), "[Inventory] ", color_white, text)
+	end
+	
+end
+net.Receive("AddChat", AddChat)
+
 local set = {
 	pad = 5,
 	boxX = 50,
@@ -25,6 +39,7 @@ end
 net.Receive("SendInv", ReceiveInv)
 
 local function Main()
+
 	local frame = vgui.Create("DFrame")
 	frame:SetSize(set.boxX*set.boxesW + set.pad*set.boxesW+set.pad, set.boxY*set.boxesT + set.pad*set.boxesW+set.pad)
 	frame:Center()
@@ -48,15 +63,17 @@ local function Main()
 			slot:SetBackgroundColor(Color(0, 0, 0, 130))
 
 			if m.class ~= nil then // if there's a class
+			
 				local item = vgui.Create("DModelPanel", slot)
 				item:SetSize(50, 50)
 				item:SetModel(m.model)
-				item:SetCamPos(Vector(6, 6, 6))
+				item:SetCamPos(Vector(20, 20, 5))
 				item:SetLookAt(Vector(0, 0, 0))
 				item:SetTooltip(m.class)
 				
 				function item:OnMousePressed(but)
-					if but == MOUSE_LEFT || MOUSE_RIGHT then
+					
+					if (but == MOUSE_RIGHT) then
 						
 						local menu = vgui.Create("DMenu")
 						menu:Open()
@@ -66,12 +83,11 @@ local function Main()
 								net.WriteInt(1, 4) // argument
 								net.WriteInt(k, 32)	// Row							
 								net.WriteInt(l, 32) // Col
-								net.WriteEntity(LocalPlayer()) // Player
 								net.WriteTable(m) // item
 							net.SendToServer()
 							
-							item:GetParent().item = nil
 							item:Remove()
+							AddChat("Equipped: " .. m.class, 1)
 						end):SetIcon("icon16/add.png")
 						
 						menu:AddOption("Drop", function() 
@@ -79,9 +95,11 @@ local function Main()
 								net.WriteInt(2, 4) // argument
 								net.WriteInt(k, 32)	// Row							
 								net.WriteInt(l, 32) // Col
-								net.WriteEntity(LocalPlayer()) // Player
 								net.WriteTable(m) // item
 							net.SendToServer()
+							
+							item:Remove()
+							AddChat("Dropped: " .. m.class, 1)
 						end):SetIcon("icon16/box.png")
 						
 						menu:AddOption("Destroy", function() 
@@ -89,9 +107,11 @@ local function Main()
 								net.WriteInt(3, 4) // argument
 								net.WriteInt(k, 32)	// Row							
 								net.WriteInt(l, 32) // Col
-								net.WriteEntity(LocalPlayer()) // Player
 								net.WriteTable(m) // item
 							net.SendToServer()
+							
+							item:Remove()
+							AddChat("Destroyed: " .. m.class, 1)
 						end):SetIcon("icon16/exclamation.png")
 
 						menu:AddSpacer()
@@ -102,10 +122,17 @@ local function Main()
 					end
 				
 				end
-				
-				
-				
+			
 			end
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			
 		end
 	end

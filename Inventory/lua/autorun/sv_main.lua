@@ -15,12 +15,12 @@ AddCSLuaFile("cl_main.lua");
 // Networking
 util.AddNetworkString("SendInv")
 util.AddNetworkString("Interact")
+util.AddNetworkString("AddChat")
 
-local function Interact()
+local function Interact(len, ply)
 	local arg = net.ReadInt(4)
 	local row = net.ReadInt(32)
 	local col = net.ReadInt(32)
-	local ply = net.ReadEntity()
 	local tbl = net.ReadTable()
 	
 	local inventory = NewInventory()
@@ -30,28 +30,26 @@ local function Interact()
 		inventory:InteractObject(row,col,function(tbl)
 			
 			ply:Give(tbl.class)
-			
-			inventory:RemoveObject(row,col)
 		
 		end)
 		
 	elseif arg == 2 then
 		
 		inventory:InteractObject(row,col,function(tbl)
-			local pos = LocalToWorld(Vector(35, 70, 35), Angle(0, 0, 0), ply:GetPos(), ply:GetAngles())
+			local pos = LocalToWorld(Vector(35, 0, 35), Angle(0, 0, 0), ply:GetPos(), ply:GetAngles())
 			local ent = ents.Create("spawned_weapon")
 			ent:SetModel(tbl.model)
-			ent:SetPos(ply:GetPos())
+			ent:SetPos(pos)
 			ent:Spawn()
 			ent:Activate()
 			
 			ent.dt["WeaponClass"] = tbl.class
 			
-			inventory:RemoveObject(row,col)
 		end)
 		
 	elseif arg == 3 then
-		inventory:RemoveObject(row,col)
+	
+		inventory:InteractObject(row,col,function(tbl) end)
 		
 	end
 
@@ -109,7 +107,7 @@ local function PlyPickup(ply,key)
 	if (!table.HasValue(pickupWhitelist,ent:GetClass())) then return end // bad class
 	
 	// debug
-	print("Player: " .. ply:Nick() .. " picked up " .. ent:GetWeaponClass());
+	//print("Player: " .. ply:Nick() .. " picked up " .. ent:GetWeaponClass());
 	
 	// load inventory
 	
@@ -125,6 +123,10 @@ local function PlyPickup(ply,key)
 	// access inventory
 	
 	inventory:AddObject(data);
+	
+	net.Start("AddChat")
+		net.WriteString("Picked up: " .. data.class)
+	net.Send(ply)
 	
 	// remove old ent
 	ent:Remove()
