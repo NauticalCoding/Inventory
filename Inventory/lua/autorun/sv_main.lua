@@ -102,11 +102,22 @@ hook.Add( "PlayerInitialSpawn","Inventory-OnInitialSpawn",OnInitialSpawn)
 local function PlyPickup(ply,key)
 	
 	if (ply:Health() <= 0) then return end
+	
 	if (key != IN_USE) then return end
 	
 	local ent = ply:GetEyeTrace().Entity
 	
 	if (!table.HasValue(pickupWhitelist,ent:GetClass())) then return end // bad class
+	
+	if ply:KeyDown(IN_SPEED) then
+		ply:Give(ent:GetWeaponClass())
+		ent:Remove()
+		
+		net.Start("AddChat")
+			net.WriteString("Equipped: " .. ReplaceClassWithName(ent:GetWeaponClass()))
+		net.Send(ply)
+		return
+	end
 	
 	// debug
 	//print("Player: " .. ply:Nick() .. " picked up " .. ent:GetWeaponClass());

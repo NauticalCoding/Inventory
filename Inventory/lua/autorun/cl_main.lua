@@ -26,8 +26,8 @@ net.Receive("AddChat", AddChat)
 
 local set = {
 	pad = 5,
-	boxX = 50,
-	boxY = 50,
+	boxX = 70,
+	boxY = 70,
 	boxesW = 10,
 	boxesT = 5,
 	title = "Inventory",
@@ -46,7 +46,6 @@ net.Receive("SendInv", ReceiveInv)
 
 
 local blur = Material("pp/blurscreen")
-
 local function DrawBlurPanel(panel, amount, heavyness)
 
 
@@ -64,6 +63,26 @@ local function DrawBlurPanel(panel, amount, heavyness)
 		surface.DrawTexturedRect(x * -1, y * -1, scrW, scrH)
 	end
 end
+
+local function DrawBlurRect(x, y, w, h, amount, heavyness)
+	local X, Y = 0,0
+	local scrW, scrH = ScrW(), ScrH()
+
+	surface.SetDrawColor(255,255,255)
+	surface.SetMaterial(blur)
+
+	for i = 1, heavyness do
+		blur:SetFloat("$blur", (i / 3) * (amount or 6))
+		blur:Recompute()
+
+		render.UpdateScreenEffectTexture()
+
+		render.SetScissorRect(x, y, x+w, y+h, true)
+			surface.DrawTexturedRect(X * -1, Y * -1, scrW, scrH)
+		render.SetScissorRect(0, 0, 0, 0, false)
+	end
+end
+
 
 // Create an easy button
 
@@ -93,6 +112,7 @@ local function DermaBut(text,method)
 	return but
 end
 
+// OUR MENU
 local function Main()
 
 	local frame = vgui.Create("DFrame")
@@ -103,7 +123,7 @@ local function Main()
 	frame:ShowCloseButton(false)
 	frame:MakePopup()
 	frame.Paint = function(self,w,h)
-		DrawBlurPanel(self, 1, 15)
+		DrawBlurPanel(self, 1, 10)
 		
 		surface.SetDrawColor(color_white)
 		surface.DrawOutlinedRect(0,0,w-34,25)
@@ -133,20 +153,20 @@ local function Main()
 	for k,v in pairs(inventory) do
 		for l,m in pairs(v) do
 			local slot = vgui.Create("DPanel", iconLayout)
-			slot:SetSize(50, 50)
-			slot:SetBackgroundColor(Color(0, 0, 0, 130))
+			slot:SetSize(set.boxX, set.boxY)
+			slot:SetBackgroundColor(Color(55, 55, 55, 100))
 			slot.Paint = function(self,w,h)
 				surface.SetDrawColor(slot:GetBackgroundColor())
 				surface.DrawRect(0,0,w,h)
 				
-				surface.SetDrawColor(color_white)
+				surface.SetDrawColor(Color(255,255,255,150))
 				surface.DrawOutlinedRect(0,0,w,h)
 			end
 
 			if m.class ~= nil then // if there's a class
 			
 				local item = vgui.Create("DModelPanel", slot)
-				item:SetSize(50, 50)
+				item:SetSize(set.boxX, set.boxY)
 				item:SetModel(m.model)
 				item:SetCamPos(Vector(20, 20, 5))
 				item:SetLookAt(Vector(0, 0, 0))
@@ -156,13 +176,7 @@ local function Main()
 					item:GetParent():SetBackgroundColor(Color(41, 128, 185, 100))
 				end
 				item.OnCursorExited = function()
-					item:GetParent():SetBackgroundColor(Color(0, 0, 0, 130))
-				end
-				item.PaintOver = function()
-					if item:IsHovered() then
-						surface.SetDrawColor(color_white)
-						surface.DrawOutlinedRect(0, 0, 50, 50)
-					end
+					item:GetParent():SetBackgroundColor(Color(55, 55, 55, 100))
 				end
 				
 				function item:OnMousePressed(but)
@@ -171,6 +185,10 @@ local function Main()
 						
 						local menu = vgui.Create("DMenu")
 						menu:Open()
+						menu:AddOption(ReplaceClassWithName(m.class))
+						
+						menu:AddSpacer()
+						
 						
 						menu:AddOption("Equip", function() 
 							net.Start("Interact")
@@ -194,7 +212,7 @@ local function Main()
 							
 							item:Remove()
 							AddChat("Dropped: " .. ReplaceClassWithName(m.class), 1)
-						end):SetIcon("icon16/box.png")
+						end):SetIcon("icon16/arrow_down.png")
 						
 						menu:AddOption("Destroy", function() 
 							net.Start("Interact")
@@ -218,18 +236,36 @@ local function Main()
 				end
 			
 			end
-			
-			
-			
-			
-			
-			
-			
-			
-			
+				
 			
 		end
 	end
 
 end
 usermessage.Hook("InvMenu", Main)
+
+// Weapon display
+
+local maxDis = 170
+local function WeaponDisplay()
+	local ent = LocalPlayer():GetEyeTrace().Entity
+	
+	if (!IsValid(ent)) then return end
+	
+	if (ent:GetClass() == "spawned_weapon") then
+		if (ent:GetPos():Distance(LocalPlayer():GetPos()) > maxDis) then return end
+		
+		local class = ent:GetWeaponClass()
+		
+		local pos = ent:LocalToWorld(ent:OBBCenter()):ToScreen()
+		
+		DrawBlurRect(pos.x-100, pos.y-10, 200, 40, 1, 10)
+		
+		surface.SetDrawColor(Color(255,255,255))		
+		surface.DrawOutlinedRect(pos.x - 100, pos.y - 10, 200, 40)
+
+		draw.SimpleTextOutlined((ReplaceClassWithName(class) or ""), "DermaDefault", pos.x, pos.y, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+		draw.SimpleTextOutlined("E to store | Shift+E to equip" , "DermaDefault", pos.x, pos.y+15, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+	end
+end
+hook.Add("HUDPaint", "Inventory-WeaponDisplay", WeaponDisplay)
