@@ -14,33 +14,49 @@ AddCSLuaFile("cl_main.lua");
 
 // Networking
 util.AddNetworkString("SendInv")
-util.AddNetworkString("EquipWeapon")
+util.AddNetworkString("Interact")
 
 local function PrintInfo()
-	local col = net.ReadInt(32)
+	local arg = net.ReadInt(4)
 	local row = net.ReadInt(32)
+	local col = net.ReadInt(32)
 	local ply = net.ReadEntity()
 	local tbl = net.ReadTable()
 	
 	local inventory = NewInventory()
 	inventory:Init(ply)
 	
-	inventory:InteractObject(row,col,function(tbl)
-		local pos = LocalToWorld(Vector(35, 70, 35), Angle(0, 0, 0), ply:GetPos(), ply:GetAngles())
-		local ent = ents.Create("spawned_weapon")
-		ent:SetModel(tbl.model)
-		ent:SetPos(ply:GetPos())
-		ent:Spawn()
-		ent:Activate()
+	if arg == 1 then
+		inventory:InteractObject(row,col,function(tbl)
+			
+			ply:Give(tbl.class)
+			
+			inventory:RemoveObject(row,col)
 		
-		ent.dt["WeaponClass"] = tbl.class
+		end)
 		
-	end)
-	
-	inventory:RemoveObject(row,col)
+	elseif arg == 2 then
+		
+		inventory:InteractObject(row,col,function(tbl)
+			local pos = LocalToWorld(Vector(35, 70, 35), Angle(0, 0, 0), ply:GetPos(), ply:GetAngles())
+			local ent = ents.Create("spawned_weapon")
+			ent:SetModel(tbl.model)
+			ent:SetPos(ply:GetPos())
+			ent:Spawn()
+			ent:Activate()
+			
+			ent.dt["WeaponClass"] = tbl.class
+			
+			inventory:RemoveObject(row,col)
+		end)
+		
+	elseif arg == 3 then
+		inventory:RemoveObject(row,col)
+		
+	end
 
 end
-net.Receive("EquipWeapon", PrintInfo)
+net.Receive("Interact", PrintInfo)
 
 // Variables
 

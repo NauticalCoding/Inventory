@@ -61,15 +61,41 @@ local function Main()
 						local menu = vgui.Create("DMenu")
 						menu:Open()
 						
-						// EQUIP WEAPON
 						menu:AddOption("Equip", function() 
-							net.Start("EquipWeapon")
-								net.WriteInt(l, 32)
-								net.WriteInt(k, 32)
-								net.WriteEntity(LocalPlayer())
-								net.WriteTable(m)
+							net.Start("Interact")
+								net.WriteInt(1, 4) // argument
+								net.WriteInt(k, 32)	// Row							
+								net.WriteInt(l, 32) // Col
+								net.WriteEntity(LocalPlayer()) // Player
+								net.WriteTable(m) // item
 							net.SendToServer()
 						end):SetIcon("icon16/add.png")
+						
+						menu:AddOption("Drop", function() 
+							net.Start("Interact")
+								net.WriteInt(2, 4) // argument
+								net.WriteInt(k, 32)	// Row							
+								net.WriteInt(l, 32) // Col
+								net.WriteEntity(LocalPlayer()) // Player
+								net.WriteTable(m) // item
+							net.SendToServer()
+						end):SetIcon("icon16/box.png")
+						
+						menu:AddOption("Destroy", function() 
+							net.Start("Interact")
+								net.WriteInt(3, 4) // argument
+								net.WriteInt(k, 32)	// Row							
+								net.WriteInt(l, 32) // Col
+								net.WriteEntity(LocalPlayer()) // Player
+								net.WriteTable(m) // item
+							net.SendToServer()
+						end):SetIcon("icon16/exclamation.png")
+
+						menu:AddSpacer()
+						
+						menu:AddOption("Cancel", function() 
+							menu:Close()
+						end):SetIcon("icon16/arrow_left.png")
 						
 						
 					end
