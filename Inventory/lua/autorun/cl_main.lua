@@ -150,7 +150,7 @@ local function Main()
 				item:SetModel(m.model)
 				item:SetCamPos(Vector(20, 20, 5))
 				item:SetLookAt(Vector(0, 0, 0))
-				item:SetTooltip(m.class)
+				item:SetTooltip(ReplaceClassWithName(m.class))
 				
 				item.OnCursorEntered = function()
 					item:GetParent():SetBackgroundColor(Color(41, 128, 185, 100))
@@ -181,7 +181,7 @@ local function Main()
 							net.SendToServer()
 							
 							item:Remove()
-							AddChat("Equipped: " .. m.class, 1)
+							AddChat("Equipped: " .. ReplaceClassWithName(m.class), 1)
 						end):SetIcon("icon16/add.png")
 						
 						menu:AddOption("Drop", function() 
@@ -193,7 +193,7 @@ local function Main()
 							net.SendToServer()
 							
 							item:Remove()
-							AddChat("Dropped: " .. m.class, 1)
+							AddChat("Dropped: " .. ReplaceClassWithName(m.class), 1)
 						end):SetIcon("icon16/box.png")
 						
 						menu:AddOption("Destroy", function() 
@@ -205,7 +205,7 @@ local function Main()
 							net.SendToServer()
 							
 							item:Remove()
-							AddChat("Destroyed: " .. m.class, 1)
+							AddChat("Destroyed: " .. ReplaceClassWithName(m.class), 1)
 						end):SetIcon("icon16/exclamation.png")
 
 						menu:AddSpacer()

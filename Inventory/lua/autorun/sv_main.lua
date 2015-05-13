@@ -11,6 +11,8 @@
 if (CLIENT) then return end
 
 AddCSLuaFile("cl_main.lua");
+AddCSLuaFile("sh_main.lua");
+include("sh_main.lua")
 
 // Networking
 util.AddNetworkString("SendInv")
@@ -125,7 +127,7 @@ local function PlyPickup(ply,key)
 	inventory:AddObject(data);
 	
 	net.Start("AddChat")
-		net.WriteString("Picked up: " .. data.class)
+		net.WriteString("Picked up: " .. ReplaceClassWithName(data.class))
 	net.Send(ply)
 	
 	// remove old ent
