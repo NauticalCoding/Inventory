@@ -69,6 +69,9 @@ local function Main()
 								net.WriteEntity(LocalPlayer()) // Player
 								net.WriteTable(m) // item
 							net.SendToServer()
+							
+							item:GetParent().item = nil
+							item:Remove()
 						end):SetIcon("icon16/add.png")
 						
 						menu:AddOption("Drop", function() 
@@ -93,9 +96,7 @@ local function Main()
 
 						menu:AddSpacer()
 						
-						menu:AddOption("Cancel", function() 
-							menu:Close()
-						end):SetIcon("icon16/arrow_left.png")
+						menu:AddOption("Cancel"):SetIcon("icon16/arrow_left.png")
 						
 						
 					end

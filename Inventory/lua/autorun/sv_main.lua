@@ -16,7 +16,7 @@ AddCSLuaFile("cl_main.lua");
 util.AddNetworkString("SendInv")
 util.AddNetworkString("Interact")
 
-local function PrintInfo()
+local function Interact()
 	local arg = net.ReadInt(4)
 	local row = net.ReadInt(32)
 	local col = net.ReadInt(32)
@@ -56,7 +56,7 @@ local function PrintInfo()
 	end
 
 end
-net.Receive("Interact", PrintInfo)
+net.Receive("Interact", Interact)
 
 // Variables
 
