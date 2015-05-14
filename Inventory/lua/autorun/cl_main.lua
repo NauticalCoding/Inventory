@@ -195,7 +195,6 @@ end
 
 // MAIN MENU
 local function Main()
-
 	local frame = vgui.Create("DFrame")
 	frame:SetSize(set.boxX*set.boxesW + set.pad*set.boxesW+set.pad, set.boxY*set.boxesT + set.pad*set.boxesW+set.pad)
 	frame:Center()
@@ -283,18 +282,20 @@ local function Main()
 						
 						menu:AddSpacer()
 						
+						if not string.match(m.class, "durgz_") then
+							menu:AddOption("Equip", function() 
+								net.Start("Interact")
+									net.WriteInt(1, 4) // argument
+									net.WriteInt(k, 32)	// Row							
+									net.WriteInt(l, 32) // Col
+									net.WriteTable(m) // item
+								net.SendToServer()
+								
+								item:Remove()
+								AddChat("Equipped: " .. ReplaceClassWithName(m.class), 1)
+							end):SetIcon("icon16/add.png")
 						
-						menu:AddOption("Equip", function() 
-							net.Start("Interact")
-								net.WriteInt(1, 4) // argument
-								net.WriteInt(k, 32)	// Row							
-								net.WriteInt(l, 32) // Col
-								net.WriteTable(m) // item
-							net.SendToServer()
-							
-							item:Remove()
-							AddChat("Equipped: " .. ReplaceClassWithName(m.class), 1)
-						end):SetIcon("icon16/add.png")
+						end
 						
 						menu:AddOption("Drop", function() 
 							net.Start("Interact")
@@ -346,10 +347,16 @@ local function WeaponDisplay()
 	
 	if (!IsValid(ent)) then return end
 	
-	if (ent:GetClass() == "spawned_weapon") then
+	//print(ent:GetClass())
+	
+	if (CheckEntity(ent:GetClass())) then
 		if (ent:GetPos():Distance(LocalPlayer():GetPos()) > maxDis) then return end
 		
-		local class = ent:GetWeaponClass()
+		local class = ent:GetClass()
+		
+		if (ent:GetClass() == "spawned_weapon") then
+			class = ent:GetWeaponClass()
+		end
 		
 		local pos = ent:LocalToWorld(ent:OBBCenter()):ToScreen()
 		
@@ -359,7 +366,7 @@ local function WeaponDisplay()
 		surface.DrawOutlinedRect(pos.x - 100, pos.y - 10, 200, 40)
 
 		draw.SimpleTextOutlined((ReplaceClassWithName(class) or ""), "DermaDefault", pos.x, pos.y, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
-		draw.SimpleTextOutlined("E to store | Shift+E to equip" , "DermaDefault", pos.x, pos.y+15, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+		draw.SimpleTextOutlined("E to store | Shift+E to use" , "DermaDefault", pos.x, pos.y+15, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 	end
 end
 hook.Add("HUDPaint", "Inventory-WeaponDisplay", WeaponDisplay)
