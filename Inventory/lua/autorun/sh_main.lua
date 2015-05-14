@@ -8,6 +8,32 @@
 	5/8/2015
 */
 
+
+local pickupWhitelist = {
+
+	"spawned_weapon",
+	"durgz_alcohol",
+	"durgz_aspirin",
+	"durgz_cigarette",
+	"durgz_cocaine",
+	"durgz_heroine",
+	"durgz_lsd",
+	"durgz_weed",
+	"durgz_mushroom",
+	"durgz_pcp",
+	"durgz_water",
+}
+
+function CheckEntity(class)
+	
+	if table.HasValue(pickupWhitelist, class) then
+		return true
+	else
+		return false
+	end
+
+end
+
 local class = {}
 
 // DarkRP Weapons
@@ -49,6 +75,18 @@ class["weapon_shotgun"] = "Shotgun"
 class["weapon_slam"] = "Slam"
 class["weapon_smg1"] = "SMG"
 class["weapon_stunstick"] = "Stunstick"
+
+// Durgz
+class["durgz_alcohol"] = "Alcohol"
+class["durgz_aspirin"] = "Aspirin"
+class["durgz_cigarette"] = "Cigarette"
+class["durgz_cocaine"] = "Cocain"
+class["durgz_heroine"] = "Heroine"
+class["durgz_lsd"] = "LSD"
+class["durgz_weed"] = "Mary Jane"
+class["durgz_mushroom"] = "Mushroom"
+class["durgz_pcp"] = "PCP"
+class["durgz_water"] = "Water"
 
 // Other
 class["gmod_camera"] = "Camera"
