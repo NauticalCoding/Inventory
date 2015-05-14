@@ -40,8 +40,6 @@ local function Interact(len, ply)
 		
 		inventory:InteractObject(row,col,function(tbl)
 			local pos = LocalToWorld(Vector(35, 0, 35), Angle(0, 0, 0), ply:GetPos(), ply:GetAngles())
-			
-			
 			local ent = ents.Create("spawned_weapon")
 			ent:SetModel(tbl.model)
 			ent:SetPos(pos)
@@ -60,6 +58,13 @@ local function Interact(len, ply)
 
 end
 net.Receive("Interact", Interact)
+
+// Variables
+
+local pickupWhitelist = {
+
+	"spawned_weapon",
+}
 
 // Include our scripts
 
@@ -102,20 +107,15 @@ local function PlyPickup(ply,key)
 	if (key != IN_USE) then return end
 	
 	local ent = ply:GetEyeTrace().Entity
-	local class = ent:GetClass()
 	
-	if not (CheckEntity(class)) then return end // bad class
-	
-	if (class == "spawned_weapon") then
-		class = ent:GetWeaponClass()
-	end
+	if (!table.HasValue(pickupWhitelist,ent:GetClass())) then return end // bad class
 	
 	if ply:KeyDown(IN_SPEED) then
-		ply:Give(class)
+		ply:Give(ent:GetWeaponClass())
 		ent:Remove()
 		
 		net.Start("AddChat")
-			net.WriteString("Used: " .. ReplaceClassWithName(ent:GetWeaponClass()))
+			net.WriteString("Equipped: " .. ReplaceClassWithName(ent:GetWeaponClass()))
 		net.Send(ply)
 		return
 	end
@@ -131,7 +131,7 @@ local function PlyPickup(ply,key)
 	// prepare data
 	
 	local data = {}
-	data.class = class
+	data.class = ent:GetWeaponClass();
 	data.model = ent:GetModel();
 	
 	// access inventory
@@ -139,7 +139,7 @@ local function PlyPickup(ply,key)
 	inventory:AddObject(data);
 	
 	net.Start("AddChat")
-		net.WriteString("Stored: " .. ReplaceClassWithName(data.class))
+		net.WriteString("Picked up: " .. ReplaceClassWithName(data.class))
 	net.Send(ply)
 	
 	// remove old ent
@@ -176,7 +176,7 @@ local function AdminInv(len, ply)
 	if not (FH:FileExists(id..".txt")) then
 		
 		net.Start("AddChat")
-			net.WriteString("No inventory for " .. id .. " was found!")
+			net.WriteString("No file for " .. id .. " was found!")
 		net.Send(ply)
 		
 		return
