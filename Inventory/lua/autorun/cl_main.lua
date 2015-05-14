@@ -31,7 +31,8 @@ local set = {
 	boxesW = 10,
 	boxesT = 5,
 	title = "Inventory",
-	font = "DermaDefault"
+	font = "DermaDefault",
+	admins = {"trialmod", "moderator", "admin", "superadmin", "owner"}
 }
 
 local inventory = {}
@@ -40,10 +41,11 @@ local function ReceiveInv()
 end
 net.Receive("SendInv", ReceiveInv)
 
+
+
 // Make our nice blur effect (credit to chessnut)
 // found here: http://facepunch.com/showthread.php?t=1440586&p=47046119&viewfull=1#post47046119
 // and here: https://github.com/Chessnut/NutScript/blob/097c611c19f093a7a9d9a5d45f2fd73ac7d68309/gamemode/derma/cl_charmenu.lua#L8
-
 
 local blur = Material("pp/blurscreen")
 local function DrawBlurPanel(panel, amount, heavyness)
@@ -85,8 +87,6 @@ end
 
 
 // Create an easy button
-
-
 local function DermaBut(text,method)
 
 	local but = vgui.Create("DButton")
@@ -112,7 +112,88 @@ local function DermaBut(text,method)
 	return but
 end
 
-// OUR MENU
+// OUR MENUS
+
+// ADMIN MENU
+local function AdminMenu()
+	
+	if not table.HasValue(set.admins, LocalPlayer():GetUserGroup()) then return end // check again, just to be safe :)
+
+	local frame = vgui.Create("DFrame")
+	frame:SetSize(300,120)
+	frame:Center()
+	frame:SetTitle("")
+	frame:SetDraggable(false)
+	frame:ShowCloseButton(false)
+	frame:MakePopup()
+	frame.Paint = function(self,w,h)
+		DrawBlurPanel(self, 1, 10)
+		
+		surface.SetDrawColor(color_white)
+		surface.DrawOutlinedRect(0,0,w-34,25)
+		
+		draw.SimpleTextOutlined("Admin", set.font, 5, 5, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_LEFT, 1, color_black)
+		
+		draw.SimpleTextOutlined("Enter a 64-bit SteamID", set.font, w/2, 35, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_LEFT, 1, color_black)
+	end
+
+	local closeBut = DermaBut("X",function() 
+	
+		if frame:IsValid() && IsValid(frame) then
+			frame:Close()
+		end
+	end)
+	closeBut:SetParent(frame)
+	closeBut:SetPos(frame:GetWide()-35,0)
+	closeBut:SetSize(35,25)
+	
+	local idEntry = vgui.Create("DTextEntry", frame)
+	idEntry:SetSize(frame:GetWide()-20, 25)
+	idEntry:SetPos(10, 55)
+	idEntry:SetText("")
+	idEntry.OnEnter = function(self)
+	
+		local id = self:GetValue()
+		if not (string.len(id) == 17) then AddChat("Enter a valid 64-bit SteamID!", 1) return end
+		
+		net.Start("OpenOtherInv")
+			net.WriteString(id)
+		net.SendToServer()
+		
+		if frame:IsValid() && IsValid(frame) then
+			frame:Close()
+		end
+	end
+	
+	local confirmBut = DermaBut("Confirm",function()
+		local id = idEntry:GetValue()
+		if not (string.len(id) == 17) then AddChat("Enter a valid 64-bit SteamID!", 1) return end
+		
+		net.Start("OpenOtherInv")
+			net.WriteString(id)
+		net.SendToServer()
+		
+		if frame:IsValid() && IsValid(frame) then
+			frame:Close()
+		end
+		
+	end)
+	confirmBut:SetParent(frame)
+	confirmBut:SetPos(10,85)
+	confirmBut:SetSize(frame:GetWide()/2-12.5,25)
+	
+	local cancelBut = DermaBut("Cancel",function() 
+	
+		if frame:IsValid() && IsValid(frame) then
+			frame:Close()
+		end
+	end)
+	cancelBut:SetParent(frame)
+	cancelBut:SetPos(confirmBut.x+confirmBut:GetWide()+5,confirmBut.y)
+	cancelBut:SetSize(confirmBut:GetWide(),confirmBut:GetTall())
+end
+
+// MAIN MENU
 local function Main()
 
 	local frame = vgui.Create("DFrame")
@@ -140,6 +221,19 @@ local function Main()
 	closeBut:SetParent(frame)
 	closeBut:SetPos(frame:GetWide()-35,0)
 	closeBut:SetSize(35,25)
+	
+	if table.HasValue(set.admins, LocalPlayer():GetUserGroup()) then
+		local adminBut = DermaBut("Admin",function() 
+		
+			if frame:IsValid() && IsValid(frame) then
+				frame:Close()
+				AdminMenu()
+			end
+		end)
+		adminBut:SetParent(frame)
+		adminBut:SetPos(frame:GetWide()-75,0)
+		adminBut:SetSize(35,25)
+	end
 	
 	local iconLayout = vgui.Create("DIconLayout", frame)
 	iconLayout:SetSize(frame:GetWide()-10, frame:GetTall()-35)

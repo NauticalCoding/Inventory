@@ -18,6 +18,7 @@ include("sh_main.lua")
 util.AddNetworkString("SendInv")
 util.AddNetworkString("Interact")
 util.AddNetworkString("AddChat")
+util.AddNetworkString("OpenOtherInv")
 
 local function Interact(len, ply)
 	local arg = net.ReadInt(4)
@@ -168,4 +169,27 @@ local function InvMenu(ply)
 	umsg.End()
 end
 hook.Add("ShowHelp", "Inventory-ShowMenu", InvMenu)
+
+local function AdminInv(len, ply)
+	local id = net.ReadString()
+	
+	if not (FH:FileExists(id..".txt")) then
+		
+		net.Start("AddChat")
+			net.WriteString("No file for " .. id .. " was found!")
+		net.Send(ply)
+		
+		return
+		
+	end
+	
+	local inventory = FH:ReadFile(id..".txt")
+
+	umsg.Start("InvMenu", ply)
+		net.Start("SendInv")
+			net.WriteTable(inventory)
+		net.Send(ply)
+	umsg.End()
+end
+net.Receive("OpenOtherInv", AdminInv)
 
