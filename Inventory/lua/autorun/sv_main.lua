@@ -151,8 +151,6 @@ local function PlyPickup(ply,key)
 	
 	// access inventory
 	
-	inventory:AddObject(data);
-	
 	if inventory:AddObject(data) then
 		//if not inventory:AddObject(data) then return end
 		

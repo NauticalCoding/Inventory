@@ -45,7 +45,7 @@ function inv:AddObject(data)
 	if wasAdded then
 		FH:WriteFile(FH:PlayerToFileName(self.parent),self);
 	end
-	
+
 	return wasAdded
 end
 
@@ -65,6 +65,10 @@ function inv:InteractObject(row,column,interactFunc)
 end
 
 function inv:MoveObject(row,column,newRow,newColumn)
+
+	if not (table.HasValue(vipGroups, self.parent:GetUserGroup())) then 
+		if (row > 3 || newRow > 3) then return; end 
+	end
 	
 	local buffer = self.contents[newRow][newColumn];
 	
