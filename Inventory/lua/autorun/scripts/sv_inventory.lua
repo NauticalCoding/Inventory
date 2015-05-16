@@ -25,20 +25,28 @@ function inv:AddObject(data)
 		self.rows = 3 
 	end
 	
+	local wasAdded = false
+	
 	for r = 1,self.rows do
 		for c = 1,self.columns do 
 			
 			if (table.Count(self.contents[r][c]) == 0) then // if the slot is empty..
 		
 				self.contents[r][c] = data;
-
+				
+				wasAdded = true
+				
 			end
 		end
 	end
 	
 	//print(self.rows)
 	
-	FH:WriteFile(FH:PlayerToFileName(self.parent),self);
+	if wasAdded then
+		FH:WriteFile(FH:PlayerToFileName(self.parent),self);
+	end
+	
+	return wasAdded
 end
 
 function inv:RemoveObject(row,column)

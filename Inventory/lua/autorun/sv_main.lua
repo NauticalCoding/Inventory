@@ -153,14 +153,21 @@ local function PlyPickup(ply,key)
 	
 	inventory:AddObject(data);
 	
-	//if not inventory:AddObject(data) then return end
-	
-	net.Start("AddChat")
-		net.WriteString("Stored: " .. ReplaceClassWithName(data.class))
-	net.Send(ply)
-	
-	// remove old ent
-	ent:Remove()
+	if inventory:AddObject(data) then
+		//if not inventory:AddObject(data) then return end
+		
+		net.Start("AddChat")
+			net.WriteString("Stored: " .. ReplaceClassWithName(data.class))
+		net.Send(ply)
+		
+		// remove old ent
+		ent:Remove()
+		
+	else
+		net.Start("AddChat")
+			net.WriteString("Inventory full!")
+		net.Send(ply)
+	end
 end
 
 hook.Add("KeyPress", "Inventory-PickUp", PlyPickup)
