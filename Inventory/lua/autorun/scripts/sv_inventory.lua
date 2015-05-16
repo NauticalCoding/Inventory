@@ -18,26 +18,25 @@ local inv = {
 	contents = {},
 }
 
---[[
-	Data that we need to store:
-		- all items being stored are going to be in the primary class "spawned_weapon"... So we can just do a check for that before AddObject is called.
-		- We will need to store 2 things:
-			- item subclass (ex: weapon_ak47 or durgz_alchohol)
-			- item model path (ex: model/weapon/weapon_ak47.mdl)
-		- These will need to be stored in our JSON table when we save and load.	
-]]--
+local vipGroups = {"superadmin"}
 
 function inv:AddObject(data)
-
+	if not (table.HasValue(vipGroups, self.parent:GetUserGroup())) then 
+		self.rows = 3 
+	end
+	
 	for r = 1,self.rows do
 		for c = 1,self.columns do 
 			
 			if (table.Count(self.contents[r][c]) == 0) then // if the slot is empty..
 		
 				self.contents[r][c] = data;
+
 			end
 		end
 	end
+	
+	//print(self.rows)
 	
 	FH:WriteFile(FH:PlayerToFileName(self.parent),self);
 end

@@ -19,6 +19,8 @@ util.AddNetworkString("SendInv")
 util.AddNetworkString("Interact")
 util.AddNetworkString("AddChat")
 util.AddNetworkString("OpenOtherInv")
+util.AddNetworkString("Move")
+util.AddNetworkString("RequestInv")
 
 local function Interact(len, ply)
 	local arg = net.ReadInt(4)
@@ -60,6 +62,19 @@ local function Interact(len, ply)
 
 end
 net.Receive("Interact", Interact)
+
+local function Move(len, ply)
+	local oldSlot = net.ReadTable()
+	local newSlot = net.ReadTable()
+	if (newSlot[1] > 5 || newSlot[1] < 1 || newSlot[2] > 10 || newSlot[2] < 1) then return end
+	
+	local inventory = NewInventory()
+	inventory:Init(ply)
+	
+	inventory:MoveObject(oldSlot[1],oldSlot[2],newSlot[1],newSlot[2])
+
+end
+net.Receive("Move", Move)
 
 // Include our scripts
 
@@ -138,6 +153,8 @@ local function PlyPickup(ply,key)
 	
 	inventory:AddObject(data);
 	
+	//if not inventory:AddObject(data) then return end
+	
 	net.Start("AddChat")
 		net.WriteString("Stored: " .. ReplaceClassWithName(data.class))
 	net.Send(ply)
@@ -190,6 +207,18 @@ local function AdminInv(len, ply)
 			net.WriteTable(inventory)
 		net.Send(ply)
 	umsg.End()
+	
 end
 net.Receive("OpenOtherInv", AdminInv)
+
+local function SendRequestedInv(len,ply)
+	local inventory = FH:ReadFile(FH:PlayerToFileName(ply))
+	
+	
+	net.Start("SendInv")
+		net.WriteTable(inventory)
+	net.Send(ply)
+	
+end
+net.Receive("RequestInv", SendRequestedInv)
 

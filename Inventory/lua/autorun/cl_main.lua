@@ -41,6 +41,30 @@ local function ReceiveInv()
 end
 net.Receive("SendInv", ReceiveInv)
 
+local function SendRequest()
+	net.Start("RequestInv")
+	net.SendToServer()
+end
+
+// Get slot
+
+local function GetSlot(x,y)
+
+	local xx,yy = gui.MousePos()
+
+	xx = xx - x - 5 // 5 padding on the left
+
+	yy = yy - y - 30 // how far down is our y? 30
+	
+	local col = math.ceil(xx/75)
+	local row = math.floor(yy/75)+1
+	
+	local info = {row, col}
+
+	return info
+
+end
+
 
 
 // Make our nice blur effect (credit to chessnut)
@@ -139,6 +163,10 @@ local function AdminMenu()
 
 	local closeBut = DermaBut("X",function() 
 	
+		if timer.Exists("RefreshInv"..LocalPlayer():SteamID64()) then
+			timer.Destroy("RefreshInv"..LocalPlayer():SteamID64())
+		end
+		
 		if frame:IsValid() && IsValid(frame) then
 			frame:Close()
 		end
@@ -212,7 +240,9 @@ local function Main()
 	end
 	
 	local closeBut = DermaBut("X",function() 
-	
+		if timer.Exists("RefreshInv"..LocalPlayer():SteamID64()) then
+			timer.Destroy("RefreshInv"..LocalPlayer():SteamID64())
+		end
 		if frame:IsValid() && IsValid(frame) then
 			frame:Close()
 		end
@@ -223,7 +253,9 @@ local function Main()
 	
 	if table.HasValue(set.admins, LocalPlayer():GetUserGroup()) then
 		local adminBut = DermaBut("Admin",function() 
-		
+			if timer.Exists("RefreshInv"..LocalPlayer():SteamID64()) then
+				timer.Destroy("RefreshInv"..LocalPlayer():SteamID64())
+			end
 			if frame:IsValid() && IsValid(frame) then
 				frame:Close()
 				AdminMenu()
@@ -243,45 +275,97 @@ local function Main()
 		draw.RoundedBox(0, 0, 0, w, h, Color(55,55,55,0))
 	end
 	
-	for k,v in pairs(inventory) do
-		for l,m in pairs(v) do
-			local slot = vgui.Create("DPanel", iconLayout)
-			slot:SetSize(set.boxX, set.boxY)
-			slot:SetBackgroundColor(Color(55, 55, 55, 100))
-			slot.Paint = function(self,w,h)
-				surface.SetDrawColor(slot:GetBackgroundColor())
-				surface.DrawRect(0,0,w,h)
-				
-				surface.SetDrawColor(Color(255,255,255,150))
-				surface.DrawOutlinedRect(0,0,w,h)
-			end
-
-			if m.class ~= nil then // if there's a class
-			
-				local item = vgui.Create("DModelPanel", slot)
-				item:SetSize(set.boxX, set.boxY)
-				item:SetModel(m.model)
-				item:SetCamPos(Vector(20, 20, 5))
-				item:SetLookAt(Vector(0, 0, 0))
-				item:SetTooltip(ReplaceClassWithName(m.class))
-				
-				item.OnCursorEntered = function()
-					item:GetParent():SetBackgroundColor(Color(41, 128, 185, 100))
-				end
-				item.OnCursorExited = function()
-					item:GetParent():SetBackgroundColor(Color(55, 55, 55, 100))
-				end
-				
-				function item:OnMousePressed(but)
+	local drag = false
+	
+	local function InventoryDisplay()
+		iconLayout:Clear()
+		SendRequest()
+		
+		
+		local x,y = frame:GetPos()
+		for k,v in pairs(inventory) do
+			for l,m in pairs(v) do
+				local slot = vgui.Create("DPanel", iconLayout)
+				slot:SetSize(set.boxX, set.boxY)
+				slot:SetBackgroundColor(Color(55, 55, 55, 100))
+				slot.Paint = function(self,w,h)
+					surface.SetDrawColor(slot:GetBackgroundColor())
+					surface.DrawRect(0,0,w,h)
 					
-					if (but == MOUSE_RIGHT) then
-						
+					surface.SetDrawColor(Color(255,255,255,150))
+					surface.DrawOutlinedRect(0,0,w,h)
+				end
+
+				if m.class ~= nil then // if there's a class
+				
+					local item = vgui.Create("DModelPanel", slot)
+					item:SetSize(set.boxX, set.boxY)
+					item:SetModel(m.model)
+					item:SetCamPos(Vector(20, 20, 5))
+					item:SetLookAt(Vector(0, 0, 0))
+					//item:SetTooltip(ReplaceClassWithName(m.class))
+					
+					/*item.OnCursorEntered = function()
+						if not drag then
+							item:GetParent():SetBackgroundColor(Color(41, 128, 185, 100))
+						end
+					end
+					item.OnCursorExited = function()
+						if not drag then
+							item:GetParent():SetBackgroundColor(Color(55, 55, 55, 100))
+						end
+					end*/
+					
+					item.DoClick = function()
+						if not drag then
+							item:GetParent():SetBackgroundColor(Color(55, 55, 55, 100))
+							item:SetParent(frame)
+							
+							drag = true
+							
+							timer.Pause("RefreshInv"..LocalPlayer():SteamID64())
+							
+							hook.Add("Think","DragNDrop", function()
+								
+								local nx,ny = gui.MousePos()
+								
+								item:SetPos(nx-x-30,ny-y-30)
+								
+								if (input.IsMouseDown(MOUSE_LEFT)) then
+
+									hook.Remove("Think","DragNDrop")
+
+									item:Remove()
+									
+									local oldSlot = {k,l}
+									local newSlot = GetSlot(x,y)
+
+									net.Start("Move")
+										net.WriteTable(oldSlot)
+										net.WriteTable(newSlot)
+									net.SendToServer()
+									
+									InventoryDisplay()
+									
+									drag = false
+									
+									timer.UnPause("RefreshInv"..LocalPlayer():SteamID64())
+								end
+								
+							end)
+														
+						end
+
+					end
+					
+					item.DoRightClick = function()
+							
 						local menu = vgui.Create("DMenu")
 						menu:Open()
 						menu:AddOption(ReplaceClassWithName(m.class))
-						
+							
 						menu:AddSpacer()
-						
+							
 						if not string.match(m.class, "durgz_") then
 							menu:AddOption("Equip", function() 
 								net.Start("Interact")
@@ -292,11 +376,21 @@ local function Main()
 								net.SendToServer()
 								
 								item:Remove()
+								
+								if timer.Exists("RefreshInv"..LocalPlayer():SteamID64()) then
+									timer.Destroy("RefreshInv"..LocalPlayer():SteamID64())
+								end
+								if frame:IsValid() && IsValid(frame) then
+									frame:Close()
+								end
+								
+								InventoryDisplay()
+								
 								AddChat("Equipped: " .. ReplaceClassWithName(m.class), 1)
 							end):SetIcon("icon16/add.png")
-						
+							
 						end
-						
+							
 						menu:AddOption("Drop", function() 
 							net.Start("Interact")
 								net.WriteInt(2, 4) // argument
@@ -304,11 +398,14 @@ local function Main()
 								net.WriteInt(l, 32) // Col
 								net.WriteTable(m) // item
 							net.SendToServer()
-							
+								
 							item:Remove()
+							
+							InventoryDisplay()
+							
 							AddChat("Dropped: " .. ReplaceClassWithName(m.class), 1)
 						end):SetIcon("icon16/arrow_down.png")
-						
+							
 						menu:AddOption("Destroy", function() 
 							net.Start("Interact")
 								net.WriteInt(3, 4) // argument
@@ -316,25 +413,34 @@ local function Main()
 								net.WriteInt(l, 32) // Col
 								net.WriteTable(m) // item
 							net.SendToServer()
-							
+								
 							item:Remove()
+							
+							InventoryDisplay()
+							
 							AddChat("Destroyed: " .. ReplaceClassWithName(m.class), 1)
 						end):SetIcon("icon16/exclamation.png")
 
 						menu:AddSpacer()
-						
+							
 						menu:AddOption("Cancel"):SetIcon("icon16/arrow_left.png")
-						
+							
+							
 						
 					end
 				
 				end
-			
-			end
+					
 				
-			
+			end
 		end
+
 	end
+	
+	InventoryDisplay()
+
+	timer.Create("RefreshInv"..LocalPlayer():SteamID64(), 0.5, 0, InventoryDisplay)
+	
 
 end
 usermessage.Hook("InvMenu", Main)
